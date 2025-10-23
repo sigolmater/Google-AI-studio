@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Copy of Round Table AI",
+  "description": "A multi-agent AI system where specialized agents contribute their perspectives to arrive at a composite decision, inspired by the concept of a round table discussion.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
