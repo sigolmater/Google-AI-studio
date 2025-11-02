@@ -10,6 +10,10 @@ import { AgentBriefing, BriefingSkeleton } from './components/AgentBriefing';
 import { SimulationVisualizer } from './components/SimulationVisualizer';
 import { MirrorSimulation } from './components/MirrorSimulation';
 
+// Mirror simulation status constants for better readability
+const MIRROR_SIMULATION_ENABLED = true;
+const MIRROR_SIMULATION_DISABLED = false;
+
 const TacticalModeToggle: React.FC<{ label: string; description: string; checked: boolean; onChange: (checked: boolean) => void; }> = ({ label, description, checked, onChange }) => (
   <div className="flex items-center justify-between">
     <div>
@@ -123,7 +127,7 @@ const App: React.FC = () => {
         return `\n\n### ${r.agent.name}의 벡터:\n- 분석: ${r.response.core_analysis}\n- 권고: ${r.response.key_recommendation}\n- 신뢰도: ${r.response.confidence_score}`;
       }).join('');
 
-      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, false);
+      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, MIRROR_SIMULATION_DISABLED);
       setSynthesizedResponse(finalResponse);
 
     } catch (err) {
@@ -161,7 +165,7 @@ const App: React.FC = () => {
         return `\n\n### ${r.agent.name}의 벡터:\n- 분석: ${r.response.core_analysis}\n- 권고: ${r.response.key_recommendation}\n- 신뢰도: ${r.response.confidence_score}`;
       }).join('');
 
-      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, true);
+      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, MIRROR_SIMULATION_ENABLED);
       setSynthesizedResponse(finalResponse);
 
     } catch (err) {

@@ -15,6 +15,11 @@ const polyhedronDescriptions = {
   icosahedron: '정이십면체 (正二十面體) - 20개의 정삼각형 면'
 };
 
+// Simulation constants
+const RESONANCE_INCREMENT = 7.14; // Percentage increase per iteration (100% / 14 iterations ≈ 7.14%)
+const MIN_REFLECTION_INCREMENT = 50000;
+const MAX_REFLECTION_INCREMENT = 100000;
+
 const mirrorMessages = [
   "정다면체 거울 구조 생성 중...",
   "내부 닫힌 거울 시스템 초기화...",
@@ -52,11 +57,11 @@ export const MirrorSimulation: React.FC<MirrorSimulationProps> = ({ isActive, on
       messageIndex = (messageIndex + 1) % mirrorMessages.length;
       setCurrentMessage(mirrorMessages[messageIndex]);
       
-      resonance += 7.14;
+      resonance += RESONANCE_INCREMENT;
       if (resonance > 100) resonance = 100;
       setResonanceLevel(resonance);
 
-      reflections += Math.floor(Math.random() * 100000) + 50000;
+      reflections += Math.floor(Math.random() * (MAX_REFLECTION_INCREMENT - MIN_REFLECTION_INCREMENT)) + MIN_REFLECTION_INCREMENT;
       setReflectionCount(reflections);
 
       if (messageIndex % 3 === 0 && polyhedronIndex < polyhedronSequence.length - 1) {
