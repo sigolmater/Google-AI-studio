@@ -8,6 +8,13 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/drive/1pSgoh6UXNGSSdkjblFtBBhxXrsxbXvO9
 
+## Features
+
+- **Multi-Agent AI System**: 8 specialized AI agents working collaboratively
+- **Tactical Modes**: Web search, map search, and deep thought capabilities
+- **Media Generation**: Create images and videos using AI
+- **거울의 비밀 (Mirror Secret)**: Advanced simulation using platonic solids and infinite resonance - [Learn more](MIRROR_SECRET.md)
+
 ## Run Locally
 
 **Prerequisites:**  Node.js

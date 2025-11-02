@@ -123,7 +123,7 @@ const App: React.FC = () => {
         return `\n\n### ${r.agent.name}의 벡터:\n- 분석: ${r.response.core_analysis}\n- 권고: ${r.response.key_recommendation}\n- 신뢰도: ${r.response.confidence_score}`;
       }).join('');
 
-      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt);
+      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, false);
       setSynthesizedResponse(finalResponse);
 
     } catch (err) {
@@ -161,7 +161,7 @@ const App: React.FC = () => {
         return `\n\n### ${r.agent.name}의 벡터:\n- 분석: ${r.response.core_analysis}\n- 권고: ${r.response.key_recommendation}\n- 신뢰도: ${r.response.confidence_score}`;
       }).join('');
 
-      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt);
+      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, true);
       setSynthesizedResponse(finalResponse);
 
     } catch (err) {
