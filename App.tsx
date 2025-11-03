@@ -8,6 +8,11 @@ import { MastersCodex } from './components/MastersCodex';
 import { SystemMonitor } from './components/SystemMonitor';
 import { AgentBriefing, BriefingSkeleton } from './components/AgentBriefing';
 import { SimulationVisualizer } from './components/SimulationVisualizer';
+import { MirrorSimulation } from './components/MirrorSimulation';
+
+// Mirror simulation status constants for better readability
+const MIRROR_SIMULATION_ENABLED = true;
+const MIRROR_SIMULATION_DISABLED = false;
 
 const TacticalModeToggle: React.FC<{ label: string; description: string; checked: boolean; onChange: (checked: boolean) => void; }> = ({ label, description, checked, onChange }) => (
   <div className="flex items-center justify-between">
@@ -44,6 +49,9 @@ const App: React.FC = () => {
     mapSearch: false,
     deepThought: false,
   });
+
+  const [mirrorSecretMode, setMirrorSecretMode] = useState<boolean>(false);
+  const [isMirrorSimulating, setIsMirrorSimulating] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,6 +97,13 @@ const App: React.FC = () => {
     setIsLoading(true);
     resetState();
 
+    // If Mirror Secret mode is enabled, show mirror simulation first
+    if (mirrorSecretMode) {
+      setIsMirrorSimulating(true);
+      // Mirror simulation will complete and then trigger the normal simulation
+      return;
+    }
+
     let effectiveTask = (taskOverride ?? task).trim();
     if (uploadedFile && effectiveTask === '') {
       effectiveTask = `${uploadedFile.name} 파일을 분석하십시오.`;
@@ -112,7 +127,45 @@ const App: React.FC = () => {
         return `\n\n### ${r.agent.name}의 벡터:\n- 분석: ${r.response.core_analysis}\n- 권고: ${r.response.key_recommendation}\n- 신뢰도: ${r.response.confidence_score}`;
       }).join('');
 
-      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt);
+      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, MIRROR_SIMULATION_DISABLED);
+      setSynthesizedResponse(finalResponse);
+
+    } catch (err) {
+      console.error('오류가 발생했습니다:', err);
+      setError('AI로부터 응답을 받는 데 실패했습니다. API 키를 확인하고 다시 시도하십시오.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [task, uploadedFile, tacticalModes, mirrorSecretMode]);
+
+  const handleMirrorSimulationComplete = useCallback(async () => {
+    setIsMirrorSimulating(false);
+    
+    // Continue with normal agent simulation after mirror simulation
+    let effectiveTask = task.trim();
+    if (uploadedFile && effectiveTask === '') {
+      effectiveTask = `${uploadedFile.name} 파일을 분석하십시오.`;
+    } else if (effectiveTask === '') {
+      effectiveTask = `현재 시스템 상태를 분석하고 다음 데이터를 기반으로 포괄적인 상태 평가 및 권장 사항을 제공하십시오:\n\n${JSON.stringify(SYSTEM_METRICS, null, 2)}`;
+    }
+
+    try {
+      const responsesPromises = AGENTS.map(async (agent: Agent) => {
+        const responseJson = await getAgentResponse(effectiveTask, agent.persona, tacticalModes, uploadedFile ?? undefined);
+        return { agent, response: responseJson, isLoading: false };
+      });
+
+      const resolvedResponses = await Promise.all(responsesPromises);
+      setAgentResponses(resolvedResponses);
+      
+      const synthesisPrompt = resolvedResponses.map(r => {
+        if (typeof r.response === 'string') {
+           return `\n\n### ${r.agent.name}의 보고 (오류):\n${r.response}`;
+        }
+        return `\n\n### ${r.agent.name}의 벡터:\n- 분석: ${r.response.core_analysis}\n- 권고: ${r.response.key_recommendation}\n- 신뢰도: ${r.response.confidence_score}`;
+      }).join('');
+
+      const finalResponse = await getSynthesizedResponse(effectiveTask, synthesisPrompt, MIRROR_SIMULATION_ENABLED);
       setSynthesizedResponse(finalResponse);
 
     } catch (err) {
@@ -167,6 +220,10 @@ const App: React.FC = () => {
   };
   
   const renderContent = () => {
+    if (isMirrorSimulating) {
+      return <MirrorSimulation isActive={true} onComplete={handleMirrorSimulationComplete} />;
+    }
+    
     if (isLoading) {
       return <SimulationVisualizer message={pollingMessage} />;
     }
@@ -249,6 +306,9 @@ const App: React.FC = () => {
              <TacticalModeToggle label="웹 접속" description="실시간 웹 정보로 분석을 강화합니다." checked={tacticalModes.webSearch} onChange={v => setTacticalModes(p => ({...p, webSearch:v}))} />
              <TacticalModeToggle label="지도 접속" description="지리적, 공간적 맥락을 활용합니다." checked={tacticalModes.mapSearch} onChange={v => setTacticalModes(p => ({...p, mapSearch:v}))} />
              <TacticalModeToggle label="깊은 숙고" description="최고 복잡도 문제 해결을 위한 최대 연산" checked={tacticalModes.deepThought} onChange={v => setTacticalModes(p => ({...p, deepThought:v}))} />
+             <div className="pt-2 border-t border-slate-600">
+               <TacticalModeToggle label="거울의 비밀 🪞" description="정다면체 거울 구조로 무한 공명 시뮬레이션" checked={mirrorSecretMode} onChange={setMirrorSecretMode} />
+             </div>
           </div>
         </div>
 
